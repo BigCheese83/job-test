@@ -5,7 +5,7 @@ logs/
 #IntelliJIDEA files
 .idea/
 *.iml
-out/
+output/
 
 #Maven builds
 target/

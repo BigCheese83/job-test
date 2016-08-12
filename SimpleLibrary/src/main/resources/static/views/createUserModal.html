@@ -1,0 +1,67 @@
+<div ng-switch on="selectedView">
+    <div ng-switch-when="createUser">
+        <div class="modal-header">
+            <h3 class="modal-title">Create User</h3>
+        </div>
+        <div class="modal-body">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <form class="form-horizontal">
+                        <div class="form-group">
+                            <label for="inputName" class="col-sm-2 control-label">Name</label>
+                            <div class="col-sm-10">
+                                <input type="text" class="form-control" id="inputName" placeholder="Name"
+                                       ng-model="newUser.name" ng-change="findUser(newUser.name)" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="btnDocument" class="col-sm-2 control-label">Documents</label>
+                            <div class="col-sm-10">
+                                <p class="form-control-static" ng-show="!newUser.userDocs || newUser.userDocs.length === 0">No documents</p>
+                                <p class="form-control-static" ng-show="newUser.userDocs && newUser.userDocs.length > 0" ng-repeat="doc in newUser.userDocs">
+                                    {{doc.title}} [ISBN {{doc.isbn}}]
+                                    <span class="glyphicon glyphicon-remove" style="color:#d9534f; cursor:pointer"
+                                          ng-click="removeDocument(doc)"
+                                          confirm="A you sure unassign document '{{doc.title}}'?" confirm-settings="{size:'sm'}"></span>
+                                </p>
+                            </div>
+                            <div class="col-sm-offset-2 col-sm-10">
+                                <button type="button" id="btnDocument" class="btn btn-info"
+                                        ng-click="selectClick()" ng-disabled="!newUser.name || newUser.name.length < 3">Select</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" ng-click="ok()" ng-disabled="!newUser.name || newUser.name.length < 3">OK</button>
+            <button type="button" class="btn btn-default" ng-click="close()">Cancel</button>
+        </div>
+    </div>
+    <div ng-switch-when="selectDoc">
+        <div class="modal-header">
+            <h3 class="modal-title">Select Document</h3>
+        </div>
+        <div class="modal-body">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="inputDoc" class="col-sm-2 control-label">Name</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="inputDoc" placeholder="Enter title of document..."
+                                   ng-model="typeAhead.title" uib-typeahead="doc.title for doc in docs | filter:$viewValue | limitTo:20"
+                                   typeahead-on-select="typeAhead.onSelect($item)" required>
+                        </div>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" ng-click="selectDocument()" class="btn btn-primary">Select</button>
+            <button type="button" ng-click="back()" class="btn btn-default">Back</button>
+        </div>
+    </div>
+</div>
