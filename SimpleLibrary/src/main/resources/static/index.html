@@ -20,12 +20,20 @@
             <div class="panel-heading">Simple Library</div>
             <div class="panel-body">
                 <uib-tabset active="active">
-                    <uib-tab index="0" heading="Users" ng-click="loadUsers()">
+                    <uib-tab index="0" heading="Users" ng-click="getUsers()">
                         <div class="panel panel-default">
                             <div class="panel-body">
-                                <button type="button" class="btn btn-info" ng-click="createUserModal()">
-                                    <span class="glyphicon glyphicon-user"></span> Create User
-                                </button>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-info" ng-click="createUserModal()">
+                                            <span class="glyphicon glyphicon-user"></span> Create User
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select class="form-control pull-right" style="width: 60px;" ng-model="userPageRequest.size"
+                                                ng-options="p for p in [10,20]"></select>
+                                    </div>
+                                </div>
                                 <table class="table table-striped">
                                     <thead>
                                     <tr>
@@ -36,16 +44,13 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr ng-repeat="user in users">
+                                    <tr ng-repeat="user in users.data">
                                         <td>{{user.id}}</td>
                                         <td>{{user.name}}</td>
                                         <td>
-                                            <div data-angular-treeview="true"
-                                                 data-tree-id="abc"
-                                                 data-tree-model="user.treeData"
-                                                 data-node-id="id"
-                                                 data-node-label="label"
-                                                 data-node-children="children"
+                                            <div data-angular-treeview="true" data-tree-id="abc"
+                                                 data-tree-model="user.treeData" data-node-id="id"
+                                                 data-node-label="label" data-node-children="children"
                                                  ng-show="user.treeData">
                                             </div>
                                         </td>
@@ -58,15 +63,30 @@
                                     </tr>
                                     </tbody>
                                 </table>
+                                <div class="row">
+                                    <div class="col-md-12 text-center">
+                                        <ul uib-pagination ng-model="userPageRequest.page" max-size="userPageRequest.size" class="pagination"
+                                            total-items="users.pagination.totalElements" boundary-links="true" num-pages="users.pagination.totalPages"
+                                            items-per-page="users.pagination.size" ng-change="getUsers(userPageRequest)"></ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </uib-tab>
-                    <uib-tab index="1" heading="Documents" ng-click="loadDocs()">
+                    <uib-tab index="1" heading="Documents" ng-click="getDocs()">
                         <div class="panel panel-default">
                             <div class="panel-body">
-                                <button type="button" class="btn btn-info" ng-click="createDocumentModal()">
-                                    <span class="glyphicon glyphicon-book"></span> Create Document
-                                </button>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <button type="button" class="btn btn-info" ng-click="createDocumentModal()">
+                                            <span class="glyphicon glyphicon-book"></span> Create Document
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select ng-model="docPageRequest.size" class="form-control pull-right" style="width: 60px"
+                                                ng-options="p for p in [10,20]"></select>
+                                    </div>
+                                </div>
                                 <table class="table table-striped">
                                     <thead>
                                     <tr>
@@ -77,7 +97,7 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr ng-repeat="doc in docs">
+                                    <tr ng-repeat="doc in docs.data">
                                         <td>{{doc.id}}</td>
                                         <td>{{doc.title}}</td>
                                         <td>{{doc.isbn}}</td>
@@ -90,6 +110,13 @@
                                     </tr>
                                     </tbody>
                                 </table>
+                                <div class="row">
+                                    <div class="col-md-12 text-center">
+                                        <ul uib-pagination ng-model="docPageRequest.page" max-size="docPageRequest.size" class="pagination"
+                                            total-items="docs.pagination.totalElements" boundary-links="true" num-pages="docs.pagination.totalPages"
+                                            items-per-page="docs.pagination.size" ng-change="getDocs(docPageRequest)"></ul>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </uib-tab>

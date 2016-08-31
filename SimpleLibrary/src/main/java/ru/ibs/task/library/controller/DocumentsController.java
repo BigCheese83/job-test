@@ -1,6 +1,8 @@
 package ru.ibs.task.library.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.ibs.task.library.model.Document;
 import ru.ibs.task.library.repo.DocumentRepository;
@@ -15,8 +17,8 @@ public class DocumentsController {
     private DocumentRepository documentRepository;
 
     @RequestMapping(path = "/all", method = RequestMethod.GET)
-    public List<Document> getAllDocuments() {
-        return documentRepository.findAll();
+    public Page<Document> getAllDocuments(Pageable pageable) {
+        return documentRepository.findAll(pageable);
     }
 
     @RequestMapping(path = "/new", method = RequestMethod.POST)
@@ -31,5 +33,10 @@ public class DocumentsController {
     @RequestMapping(path = "/doc/{id}", method = RequestMethod.DELETE)
     public void deleteDocument(@PathVariable("id") Long id) {
         documentRepository.delete(id);
+    }
+
+    @RequestMapping(path = "/search", method = RequestMethod.GET)
+    public List<Document> searchDocuments(@RequestParam("str") String str) {
+        return documentRepository.findFirst20ByTitleIgnoreCaseContaining(str);
     }
 }

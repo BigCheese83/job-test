@@ -1,80 +1,82 @@
-library.controller('mainController', function($scope, $http, $uibModal) {
+library.controller('mainController', function($scope, LibraryService) {
+    $scope.users = {};
+    $scope.docs = {};
+    $scope.userPageRequest = {page: 1, size: 10};
+    $scope.docPageRequest = {page: 1, size: 10};
 
-    $scope.loadUsers = function() {
-        $http.get('/users/all').then(function(response) {
-            var data = response.data;
-            if (data) {
-                $scope.users = data;
-                $scope.users.forEach(function(u, i) {
-                    if (u.userDocs && u.userDocs.length > 0) {
-                        u.treeData = [{
-                            label: "User Docs",
-                            id: "role" + i,
-                            children: []
-                        }];
-                        u.userDocs.forEach(function(doc, j) {
-                            u.treeData[0].children.push({
-                                label: doc.title + " [ISBN " + doc.isbn + "]",
-                                id: "role" + i + "" + j,
-                                children: []
-                            });
+    $scope.getUsers = function(pageRequest) {
+        if (!pageRequest) {
+            $scope.userPageRequest.page = 1;
+        } else {
+            $scope.userPageRequest = pageRequest;
+        }
+        LibraryService.loadUsers($scope.userPageRequest).then(function(response) {
+            $scope.users.data = response.data.content;
+            $scope.users.pagination = LibraryService.getPagination(response.data);
+
+            $scope.users.data.forEach(function(u, i) {
+                if (u.userDocs && u.userDocs.length > 0) {
+                    u.treeData = [{
+                        id: "role" + i, label: "User Docs", children: []
+                    }];
+                    u.userDocs.forEach(function(doc, j) {
+                        u.treeData[0].children.push({
+                            id: "role" + i + "" + j, label: doc.title + " [ISBN " + doc.isbn + "]", children: []
                         });
-                    }
-                });
-            }
+                    });
+                }
+            });
         });
     };
 
-    $scope.loadDocs = function() {
-        $http.get('/docs/all').then(function (response) {
-            if (response.data) {
-                $scope.docs = response.data;
-            }
+    $scope.getDocs = function(pageRequest) {
+        if (!pageRequest) {
+            $scope.docPageRequest.page = 1;
+        } else {
+            $scope.docPageRequest = pageRequest;
+        }
+        LibraryService.loadDocs($scope.docPageRequest).then(function (response) {
+            $scope.docs.data = response.data.content;
+            $scope.docs.pagination = LibraryService.getPagination(response.data);
         });
     };
 
     $scope.removeUser = function(user) {
-        $http.delete('/users/user/' + user.id).then(function(response) {
-            $scope.loadUsers();
+        LibraryService.removeUser(user).then(function(response) {
+            $scope.getUsers();
         });
     };
 
     $scope.removeDoc = function(doc) {
-        $http.delete('/docs/doc/' + doc.id).then(function(response) {
-            $scope.loadDocs();
+        LibraryService.removeDoc(doc).then(function(response) {
+            $scope.getDocs();
         });
     };
 
     $scope.createUserModal = function() {
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: '/views/createUserModal.html',
-            controller: 'createUserModalCtrl',
-            backdrop: 'static',
-            keyboard: false
-        });
-        modalInstance.result.then(function() {
-            $scope.loadUsers();
+        LibraryService.showCreateUserModal().result.then(function() {
+            $scope.getUsers();
         });
     };
 
     $scope.createDocumentModal = function() {
-        var modalInstance = $uibModal.open({
-            animation: true,
-            templateUrl: '/views/createDocumentModal.html',
-            controller: 'createDocumentModalCtrl',
-            backdrop: 'static',
-            keyboard: false
-        });
-        modalInstance.result.then(function() {
-            $scope.loadDocs();
+        LibraryService.showCreateDocumentModal().result.then(function() {
+            $scope.getDocs();
         });
     };
 
-    $scope.loadUsers();
+    $scope.$watch('userPageRequest.size', function(){
+        $scope.getUsers();
+    });
+
+    $scope.$watch('docPageRequest.size', function(){
+        $scope.getDocs();
+    });
+
+    $scope.getUsers();
 });
 
-library.controller('createUserModalCtrl', function($scope, $http, $uibModalInstance) {
+library.controller('createUserModalCtrl', function($scope, $uibModalInstance, LibraryService) {
     var views = ['createUser', 'selectDoc'];
 
     $scope.selectedView = views[0];
@@ -88,7 +90,7 @@ library.controller('createUserModalCtrl', function($scope, $http, $uibModalInsta
     };
 
     $scope.findUser = function(name) {
-        $http.get('/users/user/' + name).then(function (response) {
+        LibraryService.findUser(name).then(function (response) {
             if (response.data) {
                 $scope.newUser.userDocs = response.data.userDocs;
             } else {
@@ -109,7 +111,10 @@ library.controller('createUserModalCtrl', function($scope, $http, $uibModalInsta
         }
         var docs = $scope.newUser.userDocs;
         var selected = $scope.typeAhead.item;
-        if (docs.indexOf(selected)==-1) {
+        if (angular.isObject(selected) && selected.hasOwnProperty("id")
+            && docs.every(function(val) {
+                return val.id != selected.id;
+            })) {
             docs.push(selected);
         }
         $scope.selectedView = views[0];
@@ -127,41 +132,38 @@ library.controller('createUserModalCtrl', function($scope, $http, $uibModalInsta
     };
 
     $scope.ok = function() {
-        $http.post('/users/new', $scope.newUser).then(function(response) {
+        LibraryService.createUser($scope.newUser).then(function(response) {
             $uibModalInstance.close();
         })
     };
 
     $scope.close = function() {
-        $uibModalInstance.dismiss(false);
+        $uibModalInstance.dismiss('cancel');
     };
 
-    function loadDocs() {
-        $http.get('/docs/all').then(function(response) {
-            if (response.data) {
-                $scope.docs = response.data;
-            }
+    $scope.lookup = function(str) {
+        return LibraryService.searchDocument(str).then(function (response) {
+            return response.data;
         });
-    }
-
-    loadDocs();
+    };
 });
 
-library.controller('createDocumentModalCtrl', function($scope, $http, $uibModalInstance) {
+library.controller('createDocumentModalCtrl', function($scope, $uibModalInstance, LibraryService) {
     $scope.ok = function() {
-        $http.post('/docs/new', $scope.newDoc).then(function(response) {
+        LibraryService.createDocument($scope.newDoc).then(function(response) {
             $uibModalInstance.close();
-        })
+        });
     };
 
     $scope.close = function() {
-        $uibModalInstance.dismiss(false);
+        $uibModalInstance.dismiss('cancel');
     };
 });
 
 library.controller('ErrorCtrl', function($scope, $uibModalInstance, errorData) {
     $scope.errorData = errorData;
+
     $scope.ok = function () {
-        $uibModalInstance.close('cancel');
+        $uibModalInstance.close('ok');
     };
 });

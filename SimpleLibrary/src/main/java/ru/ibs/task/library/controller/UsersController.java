@@ -1,6 +1,8 @@
 package ru.ibs.task.library.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import ru.ibs.task.library.model.User;
 import ru.ibs.task.library.repo.UserRepository;
@@ -21,8 +23,8 @@ public class UsersController {
     }
 
     @RequestMapping(path = "/all", method = RequestMethod.GET)
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
     @RequestMapping(path = "/new", method = RequestMethod.POST)
